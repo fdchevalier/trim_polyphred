@@ -1,10 +1,10 @@
 #!/bin/bash
 # Title: trim_polyphred.sh
-# Version: 1.1
+# Version: 1.2
 # Author: Frédéric CHEVALIER <fcheval@txbiomed.org>
 # Created in: 2015-06-24
-# Modified in: 2021-05-05
-# Licence : GPL v3
+# Modified in: 2024-07-09
+# License: GPL v3
 
 
 
@@ -20,6 +20,7 @@ aim="Generate a summary table of genotypes, reads and scores for each sample fro
 # Versions #
 #==========#
 
+# v1.2 - 2024-07-09: correct bug with the progress bar / improve speed
 # v1.1 - 2021-05-05: correct bug in trap / correct bug in sort / correct bug in field differences between SNP and indel report
 # v1.0 - 2021-02-07: add functions and options / rewrite input processing / remove temporary files
 # v0.0 - 2015-06-24: creation
@@ -205,7 +206,7 @@ do
     s_hd=$(printf "$s-%s\t" GT reads score)
     header+="$s_hd"
 done
-echo -e "$header" > "$output"
+mytable="$header"
 
 # Adjust field numbers (differences between indel and SNP)
 if [[ $(sed -n "/BEGIN_COMMAND_LINE/,/END_COMMAND_LINE/{//d;p}" "$input" | grep " -indel ") ]]
@@ -235,7 +236,7 @@ do
 
     # Counter
     j=$(($i + 1))
-    ProgressBar $j ${#samples[@]} ||
+    ProgressBar $j ${#samples[@]} || :
 
     sample="${samples[$i]}"
 
@@ -277,8 +278,10 @@ do
 
     done
 
-    echo -e "$myline" >> "$output"
+    mytable+="\n$myline"
 
 done
+
+echo -e "$mytable" >> "$output"
 
 exit
